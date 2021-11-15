@@ -1,0 +1,60 @@
+#cloud-config
+
+groups:
+  - docker
+
+users:
+  - name: ${github_user}
+    ssh_import_id:
+      - gh:${github_user}
+    shell: /usr/bin/zsh
+    groups:
+      - sudo
+      - users
+      - docker
+
+ssh_pwauth: false
+
+apt:
+  sources:
+    tailscale.list:
+      source: deb https://pkgs.tailscale.com/stable/ubuntu $RELEASE main
+      keyid: 2596A99EAAB33821893C0A79458CA832957F5868
+    docker.list:
+      source: deb https://download.docker.com/linux/ubuntu $RELEASE stable
+      keyid: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    kubernetes.list:
+      source: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
+
+packages:
+  - ufw
+  - tailscale
+  
+  - docker-ce
+  - docker-ce-cli
+  - kubectl
+
+  - zsh
+  - git
+  - build-essential
+
+runcmd:
+  - iptables -F
+  - netfilter-persistent save
+
+  - ufw reset
+  
+  - tailscale up -authkey ${tailscale_auth_key}
+
+  - ufw allow in on tailscale0
+  - ufw allow 41641/udp
+
+  - ufw default deny incoming
+  - ufw default allow outgoing
+
+  - ufw reload
+  - ufw enable
+
+  - systemctl restart ssh
+  - systemctl restart docker
