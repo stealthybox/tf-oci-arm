@@ -9,6 +9,10 @@ variable "tailscale_auth_key" {
   sensitive = true
 }
 
+variable "github_user" {
+  type = string
+}
+
 resource "oci_core_instance" "oracle-arm" {
   display_name   = "oracle-arm"
   compartment_id = var.oci_compartment_id
