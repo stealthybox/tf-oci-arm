@@ -1,12 +1,16 @@
 provider "oci" {}
 
-variable oci_compartment_id {
+variable "oci_compartment_id" {
   type = string
 }
 
 variable "tailscale_auth_key" {
   type      = string
   sensitive = true
+}
+
+variable "github_user" {
+  type = string
 }
 
 resource "oci_core_instance" "oracle-arm" {
@@ -30,7 +34,7 @@ resource "oci_core_instance" "oracle-arm" {
       templatefile(
         "userdata.tpl.yaml",
         {
-          github_user = var.github_user,
+          github_user        = var.github_user,
           tailscale_auth_key = var.tailscale_auth_key,
         }
       )
