@@ -28,7 +28,6 @@ apt:
       keyid: 59FE0256827269DC81578F928B57C5C2836F4BEB
 
 packages:
-  - ufw
   - tailscale
   
   - docker-ce
@@ -40,21 +39,4 @@ packages:
   - build-essential
 
 runcmd:
-  - iptables -F
-  - netfilter-persistent save
-
-  - ufw reset
-  
   - tailscale up -authkey ${tailscale_auth_key}
-
-  - ufw allow in on tailscale0
-  - ufw allow 41641/udp
-
-  - ufw default deny incoming
-  - ufw default allow outgoing
-
-  - ufw reload
-  - ufw enable
-
-  - systemctl restart ssh
-  - systemctl restart docker

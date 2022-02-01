@@ -15,14 +15,16 @@ that is fully firewalled on a [tailscale](https://tailscale.com) network.
 The OS image is Ubuntu 20.04.
 
 The cloud-init:
-- Clears the default Oracle iptables (fine for development + iSCSI is no longer the default)
-- Configures ufw to firewall all internet traffic
 - Bootstraps Tailscale
 - Configures SSH using your GitHub public keys (fetched from your username)
 - Installs Docker
 
-Unfortunately, while NAT gateways are Free, they are not available on Free accounts
-that do not have a payment method, so I left out the private IP config.
+The Virtual Cloud Network has a Security List that **blocks all internet traffic** except for
+tailscale's NAT traversal protocols.
+
+Unfortunately, while NAT gateways are Free, they are not available on Free accounts that do
+not have a payment method, so I left out the private IP config, which is why the VM still
+must have a public IP.
 
 ## pre-reqs
 
@@ -69,6 +71,7 @@ Hopefully it succeeds for you!
 It should if you made no changes to the cloud-init and your values are correct.
 
 You should be able to `ssh oracle-arm` now from any machine with your private keys on your tailnet.
+> if your local username doesn't match your github user, you'll need to `ssh ${GITHUB_USER}@oracle-arm`
 
 ## sudo
 
@@ -76,7 +79,8 @@ Once you're SSH'd in congrats. You can access any port of oracle-arm over your t
 
 You won't have sudo access though because your user doesn't have a password yet.  
 You can load your passwordhash through cloud-init or setup, NOPASSWD sudo.  
-For now, I've settled on abusing the docker group to get a root shell to call `passwd` when I setup my other stuff like my tools and shell config:
+For now, I've settled on abusing the docker group to get a root shell to call `passwd` to manually set my
+sudo password when I install my tools and shell config:
 ```bash
 docker run -it --rm --pid host --privileged justincormack/nsenter1
 
@@ -110,11 +114,8 @@ Very quickly after the terraform Stack succeeds, you should be able to SSH into 
 If not, that's sad, and there's something wrong with your firewall config, or more likely, your tailscale key.
 Maybe try minting a new tailscale key.
 
-Alternatively, disable `ufw` in the cloud-init, re-create the VM, and SSH in via the public IP, so you can
-try to deduce what's going wrong.
-
-Maybe this is an area where using Oracle's managed firewall rules might make debugging easier since you could just
-disable them from the UI.
+Alternatively, modify the Virtual Cloud Network's "Security List" to allow SSH on tcp/22 via the public IP, so you
+can login over the internet and debug what's going wrong.
 
 ## gotchas
 
@@ -131,17 +132,24 @@ add a credit card. Maybe you could even then remove it, but I can't test that th
 I'm not sure if there's another way to invalidate the 30-day free credits other than
 waiting.
 
+An older version of this repo used `ufw` for the instance firewall instead of the
+OCI VCN's Security List, but this turned out to be brittle for two reasons:
+- 1. It was hard to get the firewalls to stop fighting each other, which made `ufw` unreliable
+- 2. Docker's NAT rules and `ufw` don't easily fit together if `ufw` is set to default deny.
+
+I just chose to stop using `ufw` and start managing the firewall /w terraform, but if you
+really want to use `ufw`, you can try to confidently solve problem #1 and use
+[chaifeng/ufw-docker](https://github.com/chaifeng/ufw-docker) to solve problem #2.
+
 I left the default shell as zsh, sorry.
-Maybe you like this? Fork and delete if you like :)
+Fork and modify if you like :)
 
 ## resources
-
-This person's entire web log is lovely and they explain the iptables thing:
-https://www.cflee.com/posts/oci-first-look-2/
-
-Tailscale has some docs on using the Oracle Cloud firewall /w tailscale if you don't
-want to use Ubuntu's `ufw`:
+Tailscale has some docs on using the Oracle Cloud firewall + setting up Split DNS
 https://tailscale.com/kb/1149/cloud-oracle/
 
-This article details some of the service limits:
+This person's entire web log is lovely and they explain Oracle's iptables if you really want to try using `ufw`:
+https://www.cflee.com/posts/oci-first-look-2/
+
+This article details some of the oracle cloud service limits:
 https://virtualizationreview.com/articles/2021/09/14/using-oracle-cloud.aspx
