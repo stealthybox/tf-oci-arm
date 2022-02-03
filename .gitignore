@@ -39,3 +39,5 @@ terraform.rc
 # Ignore lockfile since oci provider is always updating
 # and it negatively affect new users of this project
 .terraform.lock.hcl
+
+.idea
