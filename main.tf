@@ -1,10 +1,10 @@
 provider "oci" {}
 
-variable github_user {
+variable "github_user" {
   type = string
 }
 
-variable oci_compartment_id {
+variable "oci_compartment_id" {
   type = string
 }
 
