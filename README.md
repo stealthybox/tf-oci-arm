@@ -12,7 +12,7 @@ Oracle Cloud also has managed terraform (called Stacks).
 This terraform + cloud-init project creates an Ampere VM with a public IP
 that is fully firewalled on a [tailscale](https://tailscale.com) network.
 
-The OS image is Ubuntu 20.04.
+The OS image is Ubuntu 22.04.
 
 The cloud-init:
 - Bootstraps Tailscale
@@ -39,7 +39,7 @@ We can use terraform from the Oracle Cloud UI.
 
 Clone the repo (or fork it):
 ```bash
-git clone git@github.com:stealthybox/tf-oci-arm
+git clone git@github.com:tsopokis/tf-oci-arm
 cd tf-oci-arm
 ```
 
